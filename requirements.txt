@@ -1,0 +1,16 @@
+cloudinary==1.44.0
+cryptography==44.0.3
+dj-rest-auth==7.0.1
+Django==5.2.1
+django-allauth==65.8.0
+django-cloudinary-storage==0.3.0
+djangorestframework==3.16.0
+djangorestframework_simplejwt==5.5.0
+django-cors-headers==4.7.0
+python-decouple==3.8
+requests==2.32.3
+django-autoslug==1.9.9
+pillow==11.2.1
+django-countries==7.6.1
+pandas==2.3.0
+openpyxl==3.1.5
