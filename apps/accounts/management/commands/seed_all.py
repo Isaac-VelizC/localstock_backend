@@ -8,5 +8,5 @@ class Command(BaseCommand):
         call_command('seed_roles')
         call_command('seed_rubros')
         call_command('seed_planes')
-        # call_command('seed_units')
+        call_command('seed_units')
         self.stdout.write(self.style.SUCCESS('🎉 Todos los datos iniciales fueron cargados con éxito'))

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.stores',
     'apps.warehouse',
+    'apps.brand'
 ]
 
 MIDDLEWARE = [
@@ -173,7 +174,7 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -194,7 +195,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Para desarrollo
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Para desarrollo
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # Looking to send emails in production? Check out our Email API/SMTP product!
