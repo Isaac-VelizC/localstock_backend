@@ -13,7 +13,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('name', 'code', 'barcode', 'slug', 'category', 'brand', 'unit')
+            'fields': ('name', 'code', 'barcode', 'category', 'brand', 'unit')
         }),
         ('Precios y Stock', {
             'fields': ('purchase_price', 'sale_price', 'stock')
