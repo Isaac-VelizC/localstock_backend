@@ -23,7 +23,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
         user = request.user
         queryset = Category.objects.filter(
             store=user.store, is_active=True, name__icontains=search
-        ).only('id', 'name').order_by('name')
+        ).only('id', 'name').order_by('name')[:10]
         serializer = CategoryParentsSerializer(queryset, many=True)
         return Response(serializer.data)
     

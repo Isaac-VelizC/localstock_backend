@@ -29,7 +29,7 @@ class BrandViewSet(viewsets.ModelViewSet):
         user = request.user
         queryset = Brand.objects.filter(
             store=user.store, is_active=True, name__icontains=search
-        ).only('id', 'name').order_by('name')
+        ).only('id', 'name').order_by('name')[:10]
         serializer = BrandSearchSelectSerializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -50,6 +50,6 @@ class UnitViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='unit-search')
     def unit_search(self, request):
         search = request.query_params.get('search', '')
-        queryset = Unit.objects.filter(name__icontains=search).only('id', 'name').order_by('name')
+        queryset = Unit.objects.filter(name__icontains=search).only('id', 'name').order_by('name')[:6]
         serializer = UniSearchSelectSerializer(queryset, many=True)
         return Response(serializer.data)
