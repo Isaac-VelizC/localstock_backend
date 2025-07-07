@@ -20,7 +20,7 @@ class SupplierSerializer(serializers.ModelSerializer):
         store = self.context['request'].user.store
 
         if nit is not None:
-            qs = Supplier.objects.filter(nit=nit, store=store, is_deleted=False)
+            qs = Supplier.objects.filter(nit=nit, store=store, soft_deleted=False)
             if self.instance:
                 qs = qs.exclude(id=self.instance.id)
             if qs.exists():

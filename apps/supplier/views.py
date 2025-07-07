@@ -25,7 +25,6 @@ class SupplierViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='restore')
     def restore(self, request, pk=None):
-        print(pk)
         supplier = Supplier.all_objects.filter(pk=pk, store=request.user.store).first()
         if supplier and supplier.soft_deleted:
             supplier.soft_deleted = False
