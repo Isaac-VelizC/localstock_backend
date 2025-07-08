@@ -31,7 +31,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             store=user.store,
             warehouse=warehouse,
             soft_deleted=False
-        ).order_by('name')
+        )
     
     @action(detail=True, methods=['post'], url_path='restore')
     def restore(self, request, pk=None):
