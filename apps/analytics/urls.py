@@ -5,7 +5,8 @@ from .dashboard_views import (
     LowStockProductsAlertView, TotalRevenueView, MonthlySalesSummaryView,
     SalesByStatusView, TopCategoriesSoldView,
     ProductsOutOfStockView, TotalStockValueView, SalesTodayView,
-    AverageTicketSizeView
+    AverageTicketSizeView, MonthlyPurchasesView,
+    PurchaseStatusSummaryView, TotalBySupplierView
 )
 
 urlpatterns = [
@@ -24,4 +25,9 @@ urlpatterns = [
     path('dashboard/total-stock-value/', TotalStockValueView.as_view()),
     path('dashboard/sales-today/', SalesTodayView.as_view()),
     path('dashboard/average-ticket-size/', AverageTicketSizeView.as_view()),
+
+    # path('dashboard/low-products/', LeastPurchasedProductsView.as_view()),
+    path('dashboard/monthly-purchases/', MonthlyPurchasesView.as_view()),
+    path('dashboard/status-summary/', PurchaseStatusSummaryView.as_view()),
+    path('dashboard/supplier-totals/', TotalBySupplierView.as_view()),
 ]

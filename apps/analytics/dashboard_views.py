@@ -211,23 +211,6 @@ class AverageTicketSizeView(APIView):
         return Response({'average_ticket_size': float(average)})
 
 #### COMPRAS
-class TopPurchasedProductsView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        warehouse = get_default_warehouse(user)
-
-        queryset = PurchaseDetail.objects.filter(
-            purchase__store=user.store,
-            purchase__warehouse=warehouse,
-            purchase__status='completed'
-        ).values('product__name').annotate(
-            total_quantity=Sum('quantity')
-        ).order_by('-total_quantity')[:10]
-
-        return Response(queryset)
-
 class MonthlyPurchasesView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -257,7 +240,6 @@ class PurchaseStatusSummaryView(APIView):
         warehouse = get_default_warehouse(user)
 
         summary = Purchase.objects.filter(
-            store=user.store,
             warehouse=warehouse
         ).values('status').annotate(
             count=Count('id'),
