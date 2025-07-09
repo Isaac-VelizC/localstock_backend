@@ -3,11 +3,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models.functions import TruncMonth
+from django.utils.timezone import now, timedelta
 from django.db.models import Sum, Count, F
 from apps.product.models import Product
 from apps.sale.models import Sale, SaleDetail
+from apps.purchase.models import Purchase, PurchaseDetail
+from apps.warehouse.utils import get_default_warehouse
 from apps.customer.models import Customer
-from django.utils.timezone import now
 
 # Constante para definir stock mínimo
 LOW_STOCK_THRESHOLD = 10
@@ -16,7 +18,13 @@ class CountProductsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        count = Product.objects.filter(is_active=True, soft_deleted=False).count()
+        user = request.user
+        warehouse = get_default_warehouse(user)
+        count = Product.objects.filter(
+            warehouse=warehouse,
+            is_active=True,
+            soft_deleted=False
+        ).count()
         return Response({'count_products': count})
 
 
@@ -24,7 +32,9 @@ class CountSalesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        count = Sale.objects.filter(status='completed').count()
+        user = request.user
+        warehouse = get_default_warehouse(user)
+        count = Sale.objects.filter(status='completed', warehouse=warehouse).count()
         return Response({'count_sales': count})
 
 
@@ -32,14 +42,17 @@ class CountCustomersView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        count = Customer.objects.count()
+        user = request.user
+        warehouse = get_default_warehouse(user)
+        count = Customer.objects.filter(warehouse=warehouse).count()
         return Response({'count_customers': count})
-
 
 class TopSellingProductsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        user = request.user
+        warehouse = get_default_warehouse(user)
         top_n = int(request.query_params.get('top', 5))
         top_products = (
             SaleDetail.objects
@@ -54,7 +67,13 @@ class LowStockProductsCountView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        count = Product.objects.filter(stock__lt=LOW_STOCK_THRESHOLD, is_active=True).count()
+        user = request.user
+        warehouse = get_default_warehouse(user)
+        count = Product.objects.filter(
+            stock__lt=LOW_STOCK_THRESHOLD,
+            warehouse=warehouse,
+            is_active=True,
+            ).count()
         return Response({'low_stock_count': count})
 
 
@@ -62,7 +81,13 @@ class LowStockProductsAlertView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        products = Product.objects.filter(stock__lt=LOW_STOCK_THRESHOLD, is_active=True)
+        user = request.user
+        warehouse = get_default_warehouse(user)
+        products = Product.objects.filter(
+            warehouse=warehouse,
+            stock__lt=LOW_STOCK_THRESHOLD,
+            is_active=True
+            )
         data = [
             {
                 'id': p.id,
@@ -80,7 +105,10 @@ class TotalRevenueView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        total = Sale.objects.filter(status='completed').aggregate(total=Sum('net_total'))['total'] or 0
+        
+        user = request.user
+        warehouse = get_default_warehouse(user)
+        total = Sale.objects.filter(status='completed', warehouse=warehouse).aggregate(total=Sum('net_total'))['total'] or 0
         return Response({'total_revenue': float(total)})
 
 # Total de ventas por mes
@@ -88,8 +116,10 @@ class MonthlySalesSummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        user = request.user
+        warehouse = get_default_warehouse(user)
         data = (
-            Sale.objects.filter(status='completed')
+            Sale.objects.filter(status='completed', warehouse=warehouse)
             .annotate(month=TruncMonth('sale_date'))
             .values('month')
             .annotate(total=Sum('net_total'))
@@ -102,8 +132,10 @@ class SalesByStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        user = request.user
+        warehouse = get_default_warehouse(user)
         data = (
-            Sale.objects.values('status')
+            Sale.objects.filter(warehouse=warehouse).values('status')
             .annotate(count=Count('id'))
             .order_by('status')
         )
@@ -136,7 +168,9 @@ class ProductsOutOfStockView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        products = Product.objects.filter(stock=0, is_active=True)
+        user = request.user
+        warehouse = get_default_warehouse(user)
+        products = Product.objects.filter(stock=0, is_active=True, warehouse=warehouse)
         data = [{'id': p.id, 'name': p.name, 'warehouse': p.warehouse.name} for p in products]
         return Response({'out_of_stock_products': data})
 
@@ -145,7 +179,9 @@ class TotalStockValueView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        value = Product.objects.filter(is_active=True).aggregate(
+        user = request.user
+        warehouse = get_default_warehouse(user)
+        value = Product.objects.filter(is_active=True, warehouse=warehouse).aggregate(
             total=Sum(F('stock') * F('purchase_price'))
         )['total'] or 0
         return Response({'total_stock_value': float(value)})
@@ -155,8 +191,10 @@ class SalesTodayView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        user = request.user
+        warehouse = get_default_warehouse(user)
         today = now().date()
-        total = Sale.objects.filter(sale_date=today, status='completed').aggregate(total=Sum('net_total'))['total'] or 0
+        total = Sale.objects.filter(sale_date=today, status='completed', warehouse=warehouse).aggregate(total=Sum('net_total'))['total'] or 0
         return Response({'sales_today': float(total)})
 
 # Promedio de ingreso por venta
@@ -164,8 +202,83 @@ class AverageTicketSizeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        completed_sales = Sale.objects.filter(status='completed')
+        user = request.user
+        warehouse = get_default_warehouse(user)
+        completed_sales = Sale.objects.filter(status='completed', warehouse=warehouse)
         total = completed_sales.aggregate(total=Sum('net_total'))['total'] or 0
         count = completed_sales.count()
         average = total / count if count > 0 else 0
         return Response({'average_ticket_size': float(average)})
+
+#### COMPRAS
+class TopPurchasedProductsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        warehouse = get_default_warehouse(user)
+
+        queryset = PurchaseDetail.objects.filter(
+            purchase__store=user.store,
+            purchase__warehouse=warehouse,
+            purchase__status='completed'
+        ).values('product__name').annotate(
+            total_quantity=Sum('quantity')
+        ).order_by('-total_quantity')[:10]
+
+        return Response(queryset)
+
+class MonthlyPurchasesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        warehouse = get_default_warehouse(user)
+        start_date = now() - timedelta(days=180)
+
+        queryset = Purchase.objects.filter(
+            store=user.store,
+            warehouse=warehouse,
+            status='completed',
+            purchase_date__gte=start_date
+        ).annotate(
+            month=TruncMonth('purchase_date')
+        ).values('month').annotate(
+            total=Sum('total')
+        ).order_by('month')
+
+        return Response(queryset)
+    
+class PurchaseStatusSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        warehouse = get_default_warehouse(user)
+
+        summary = Purchase.objects.filter(
+            store=user.store,
+            warehouse=warehouse
+        ).values('status').annotate(
+            count=Count('id'),
+            total=Sum('total')
+        ).order_by('status')
+
+        return Response(summary)
+
+class TotalBySupplierView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        warehouse = get_default_warehouse(user)
+
+        data = Purchase.objects.filter(
+            store=user.store,
+            warehouse=warehouse,
+            status='completed'
+        ).values('supplier__name').annotate(
+            total_spent=Sum('total')
+        ).order_by('-total_spent')[:10]
+
+        return Response(data)
