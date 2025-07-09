@@ -46,7 +46,6 @@ def procesar_confirmacion(purchase, user):
 
             product.stock += quantity
             # Si manejas stock reservado:
-            product.reserved_stock = max(0, product.reserved_stock - quantity)
             updated_products.append(product)
 
             inventory_logs.append(InventoryTransaction(
@@ -69,7 +68,7 @@ def procesar_confirmacion(purchase, user):
             )
 
         InventoryTransaction.objects.bulk_create(inventory_logs)
-        Product.objects.bulk_update(updated_products, ['stock', 'reserved_stock'])
+        Product.objects.bulk_update(updated_products, ['stock'])
 
         purchase.status = 'completed'
         purchase.save()

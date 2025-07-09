@@ -66,7 +66,6 @@ class PurchaseViewSet(viewsets.ModelViewSet):
         if purchase.status == 'canceled':
             return Response({'detail': 'La compra ya está cancelada.'}, status=status.HTTP_400_BAD_REQUEST)
         if purchase.status == 'pending':
-            # Dependiendo de la lógica, podrías permitir cancelar sin reversar stock
             pass
 
         try:

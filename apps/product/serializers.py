@@ -154,7 +154,7 @@ class ProductBarcodeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'barcode', 'sale_price', 'stock']
         read_only_fields = fields
 
-class ProductPurchaseItemSerializer(serializers.ModelSerializer):
+class ProductItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [

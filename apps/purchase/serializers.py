@@ -1,5 +1,5 @@
 from .models import Purchase, PurchaseDetail
-from apps.product.serializers import ProductPurchaseItemSerializer
+from apps.product.serializers import ProductItemSerializer
 from apps.supplier.serializers import SupplierSerializer
 from rest_framework import serializers
 
@@ -17,7 +17,7 @@ class PurchaseListSerializer(serializers.ModelSerializer):
         return obj.get_status_display()
 
 class PurchaseDetailItemSerializer(serializers.ModelSerializer):
-    product = ProductPurchaseItemSerializer(read_only=True)
+    product = ProductItemSerializer(read_only=True)
     class Meta:
         model = PurchaseDetail
         fields = [
