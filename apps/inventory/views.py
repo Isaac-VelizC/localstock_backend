@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, filters, views
 from .serializers import InventoryTransactionSerializer
-from rest_framework.exceptions import PermissionDenied
-from apps.warehouse.models import UserWarehouseAccess
+from apps.warehouse.utils import get_default_warehouse
+from django_filters.rest_framework import DjangoFilterBackend
 from django.utils.timezone import timedelta, now
 from rest_framework.response import Response
 from .models import InventoryTransaction
@@ -13,19 +13,14 @@ class InventoryTransactionViewSet(viewsets.ModelViewSet):
     serializer_class = InventoryTransactionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['type', 'created_at', 'product']
     search_fields = ['reason', 'reference_type', 'product__name', 'product__code']
     ordering = ['-created_at']
 
     def get_queryset(self):
         user = self.request.user
-        access = UserWarehouseAccess.objects.filter(user=user, is_default=True).select_related('warehouse').first()
-        if not access:
-            raise PermissionDenied("No tienes un almacén asignado por defecto.")
-
-        warehouse = access.warehouse
-
+        warehouse = get_default_warehouse(user)
         # Puedes filtrar por la tienda o almacén asociado al usuario si lo necesitas.
         return InventoryTransaction.objects.filter(store=user.store, warehouse=warehouse).order_by('-created_at')
 
@@ -34,11 +29,7 @@ class LowStockAlertView(views.APIView):
 
     def get(self, request):
         user = request.user
-        access = UserWarehouseAccess.objects.filter(user=user, is_default=True).select_related('warehouse').first()
-        if not access:
-            raise PermissionDenied("No tienes un almacén asignado por defecto.")
-
-        warehouse = access.warehouse
+        warehouse = get_default_warehouse(user)
         productos = Product.objects.filter(
             store=user.store,
             warehouse=warehouse,
@@ -54,11 +45,8 @@ class StockStatusSummaryView(views.APIView):
 
     def get(self, request):
         user = request.user
-        access = UserWarehouseAccess.objects.filter(user=user, is_default=True).select_related('warehouse').first()
-        if not access:
-            raise PermissionDenied("No tienes un almacén asignado por defecto.")
         
-        warehouse = access.warehouse
+        warehouse = get_default_warehouse(user)
         productos = Product.objects.filter(
             store=user.store,
             warehouse=warehouse,
@@ -80,11 +68,8 @@ class TopMostStockedProductsView(views.APIView):
 
     def get(self, request):
         user = request.user
-        access = UserWarehouseAccess.objects.filter(user=user, is_default=True).select_related('warehouse').first()
-        if not access:
-            raise PermissionDenied("No tienes un almacén asignado por defecto.")
 
-        warehouse = access.warehouse
+        warehouse = get_default_warehouse(user)
         top_products = Product.objects.filter(
             store=user.store,
             warehouse=warehouse,
@@ -99,11 +84,8 @@ class TopLeastStockedProductsView(views.APIView):
 
     def get(self, request):
         user = request.user
-        access = UserWarehouseAccess.objects.filter(user=user, is_default=True).select_related('warehouse').first()
-        if not access:
-            raise PermissionDenied("No tienes un almacén asignado por defecto.")
 
-        warehouse = access.warehouse
+        warehouse = get_default_warehouse(user)
         bottom_products = Product.objects.filter(
             store=user.store,
             warehouse=warehouse,
@@ -118,11 +100,7 @@ class StockOverTimeView(views.APIView):
 
     def get(self, request):
         user = request.user
-        access = UserWarehouseAccess.objects.filter(user=user, is_default=True).select_related('warehouse').first()
-        if not access:
-            raise PermissionDenied("No tienes un almacén asignado por defecto.")
-
-        warehouse = access.warehouse
+        warehouse = get_default_warehouse(user)
 
         days = 15  # cambiar por 30 o lo que necesites
         data = []

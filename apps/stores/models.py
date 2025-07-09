@@ -13,8 +13,8 @@ class Rubro(models.Model):
 class Plan(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    max_users = models.IntegerField(null=True, blank=True)
-    max_products = models.IntegerField(null=True, blank=True)
+    max_users = models.IntegerField(null=True, blank=True, default=1)
+    max_products = models.IntegerField(null=True, blank=True, default=30)
     features = models.JSONField(default=dict, blank=True)
 
     def __str__(self):

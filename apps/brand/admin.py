@@ -6,7 +6,7 @@ from .models import Brand, Unit
 class BrandAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'is_active', 'created_at')
     search_fields = ('name', 'store__name')
-    list_filter = ('is_active', 'created_at')
+    list_filter = ('is_active',)
 
 @admin.register(Unit)
 class UnitAdmin(admin.ModelAdmin):

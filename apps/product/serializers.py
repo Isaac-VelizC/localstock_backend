@@ -1,6 +1,6 @@
 from .models import Product, ProductImages, ProductPriceHistory
 from django.contrib.contenttypes.models import ContentType
-from apps.warehouse.models import UserWarehouseAccess
+from apps.warehouse.utils import get_default_warehouse
 from apps.brand.serializers import UnitSerializer
 from django.db import transaction, IntegrityError
 from rest_framework import serializers
@@ -64,11 +64,8 @@ class ProductCreateSerializer(ProductBaseSerializer):
 
         if not store:
             raise serializers.ValidationError("El usuario no tiene una tienda asignada.")
-        access = UserWarehouseAccess.objects.filter(user=user, is_default=True).first()
-        if not access:
-            raise serializers.ValidationError("No tienes un almacén asignado por defecto.")
-
-        warehouse = access.warehouse
+        
+        warehouse = get_default_warehouse(user)
 
         try:
             product = Product.objects.create(

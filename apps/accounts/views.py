@@ -1,15 +1,15 @@
-import random
-from .models import Role, EmailVerificationCode, User
-from rest_framework import status, generics
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from .serializers import RegisterUserSerializer, AccountSerializer, AccountUpdateSerializer, UserOnboardingSerializer
-from apps.stores.models import Plan, Store, GeneralSetting
-from django.core.mail import send_mail
-from dj_rest_auth.registration.views import SocialLoginView
-from rest_framework_simplejwt.tokens import RefreshToken
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from dj_rest_auth.registration.views import SocialLoginView
+from apps.stores.models import Plan, Store, GeneralSetting
+from rest_framework_simplejwt.tokens import RefreshToken
+from .models import Role, EmailVerificationCode, User
+from rest_framework.response import Response
+from rest_framework import status, generics
+from rest_framework.views import APIView
+from django.core.mail import send_mail
+import random
 
 # Create your views here.
 class GetAccountShowView(generics.RetrieveAPIView):

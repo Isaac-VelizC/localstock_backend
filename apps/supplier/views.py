@@ -1,5 +1,6 @@
 from .serializers import SupplierSerializer, SupplierSelectSerializer
 from rest_framework import permissions, viewsets, filters, status
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q
@@ -11,7 +12,7 @@ class SupplierViewSet(viewsets.ModelViewSet):
     serializer_class = SupplierSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['country', 'is_active']
     search_fields = ['name', 'contact_name', 'email', 'phone', 'nit']
     ordering_fields = ['email', 'nit', 'country']

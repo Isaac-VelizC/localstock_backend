@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.warehouse.models import UserWarehouseAccess
+from apps.warehouse.utils import get_default_warehouse
 from .models import Customer
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -34,11 +34,8 @@ class CustomerSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El usuario no tiene una tienda asignada.")
         
         # Buscar el almacén por defecto del usuario
-        access = UserWarehouseAccess.objects.filter(user=user, is_default=True).first()
-        if not access:
-            raise serializers.ValidationError("No tienes un almacén asignado por defecto.")
-
-        return Customer.objects.create(store=store, warehouse=access.warehouse, **validated_data)
+        access = get_default_warehouse(user)
+        return Customer.objects.create(store=store, warehouse=access, **validated_data)
 
 class CustomerSelectSerializer(serializers.ModelSerializer):
     class Meta:

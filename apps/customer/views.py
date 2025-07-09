@@ -1,7 +1,7 @@
 from .serializers import CustomerSerializer, CustomerSelectSerializer
 from rest_framework import viewsets, permissions, filters, status
-from rest_framework.exceptions import PermissionDenied
-from apps.warehouse.models import UserWarehouseAccess
+from django_filters.rest_framework import DjangoFilterBackend
+from apps.warehouse.utils import get_default_warehouse
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q
@@ -11,21 +11,15 @@ from .models import Customer
 class CustomerViewSet(viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['is_active']
     search_fields = ['name', 'surnames', 'email', 'phone', 'ci']
     ordering_fields = ['surnames', 'ci']
     ordering = ['name']
     
-    def get_default_warehouse(self, user):
-        access = UserWarehouseAccess.objects.filter(user=user, is_default=True).select_related('warehouse').first()
-        if not access:
-            raise PermissionDenied("No tienes un almacén asignado por defecto.")
-        return access.warehouse
-
     def get_queryset(self):
         user = self.request.user
-        warehouse = self.get_default_warehouse(user)
+        warehouse = get_default_warehouse(user)
         
         return Customer.objects.filter(
             store=user.store,
@@ -47,7 +41,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
     def search_item(self, request):
         search = request.query_params.get('search', '')
         user = request.user
-        warehouse = self.get_default_warehouse(user)
+        warehouse = get_default_warehouse(user)
         queryset = Customer.objects.filter(
             store=user.store,
             warehouse=warehouse,

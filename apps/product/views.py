@@ -1,7 +1,6 @@
 from .serializers import ProductCreateSerializer, ProductSerializer, ProductListSerializer, ProductSearchSelectSerializer, ProductBarcodeSerializer, ProductUpdateSerializer
 from rest_framework import permissions, filters, serializers, status
-from rest_framework.exceptions import PermissionDenied
-from apps.warehouse.models import UserWarehouseAccess
+from apps.warehouse.utils import get_default_warehouse
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,15 +14,9 @@ class ProductViewSet(ModelViewSet):
     ordering_fields = ['name', 'created_at', 'sale_price', 'category__name']
     ordering = ['-created_at']
 
-    def get_default_warehouse(self, user):
-        access = UserWarehouseAccess.objects.filter(user=user, is_default=True).select_related('warehouse').first()
-        if not access:
-            raise PermissionDenied("No tienes un almacén asignado por defecto.")
-        return access.warehouse
-    
     def get_queryset(self):
         user = self.request.user
-        warehouse = self.get_default_warehouse(user)
+        warehouse = get_default_warehouse(user)
 
         queryset = Product.objects.filter(
             store=user.store,
@@ -77,7 +70,7 @@ class ProductViewSet(ModelViewSet):
     def search_item(self, request):
         search = request.query_params.get('search', '')
         user = request.user
-        warehouse = self.get_default_warehouse(user)
+        warehouse = get_default_warehouse(user)
 
         queryset = Product.objects.filter(
             store=user.store,
@@ -95,7 +88,7 @@ class ProductViewSet(ModelViewSet):
     def by_barcode(self, request):
         barcode = request.query_params.get('barcode', '').strip()
         user = request.user
-        warehouse = self.get_default_warehouse(user)
+        warehouse = get_default_warehouse(user)
 
         if not barcode:
             return Response({"detail": "El parámetro 'barcode' es requerido."}, status=400)
