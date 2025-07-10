@@ -1,7 +1,9 @@
 from corsheaders.defaults import default_headers
-from decouple import config
-from pathlib import Path
+from decouple import config, Csv
 from datetime import timedelta
+from pathlib import Path
+import dj_database_url
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -13,9 +15,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = [] #  config('ALLOWED_HOSTS').split(',')
+ALLOWED_HOSTS = ['.onrender.com'] #  config('ALLOWED_HOSTS').split(',')
 
 SITE_ID = 1
 REST_USE_JWT = False
@@ -94,10 +96,10 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # Si usas cookies para autenticación (session auth)
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # puerto donde corre React
-]
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", cast=Csv())
+
+CORS_ALLOW_CREDENTIALS = config("CORS_ALLOW_CREDENTIALS", default=False, cast=bool)
+
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'Authorization',
 ]
@@ -106,12 +108,8 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(default=config('DATABASE_URL'))
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -151,7 +149,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/static/'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dcvaqzmt9',

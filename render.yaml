@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: localstock-backend
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn core.wsgi --log-file -
+    plan: free
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: core.settings
+      - key: SECRET_KEY
+        value: TU_CLAVE_SECRETA
+      - key: DEBUG
+        value: False
+      - fromDatabase:
+          name: localstock-db
+          property: connectionString
+        key: DATABASE_URL
+
+databases:
+  - name: localstock-db
+    databaseName: localstock
+    user: localstock_user
