@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+from .views import deploy_migrate
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -26,4 +27,5 @@ urlpatterns = [
     path('api/purchase/', include('apps.purchase.urls')),
     path('api/sale/', include('apps.sale.urls')),
     path('api/a/', include('apps.analytics.urls')),
+    path("deploy/migrate/", deploy_migrate),
 ]
